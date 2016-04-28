@@ -147,6 +147,8 @@ if i == 1 { //if i {} 不可
     
 }
 
+//: > 可以看到，前面的类型名称都是首字母大写。Apple希望我们养成这么一个编码习惯，把类型名首字母都大写，同时变量用小写。
+
 /*:
 ### 元组tuples
 元组是把多个值组和成一个复合值。元组内的值可以是任意类型。用在函数返回值非常好用，尤其是需要返回多个返回值时。
@@ -166,6 +168,8 @@ print("The status code is \(http404Error.0) \nThe status message is \(http404Err
 let http200status = (statusCode:200, description:"OK")
 print("The status code is \(http200status.statusCode) \nThe status message is \(http200status.description)")
 
+
+
 /*:
 ### 可选类型optionals
 使用可选类型来处理值可能缺失的情况。
@@ -173,36 +177,111 @@ print("The status code is \(http200status.statusCode) \nThe status message is \(
  */
 let possibleNumber = "123"
 let convertedNumber = Int(possibleNumber)
-/*： 可以看到`convertNumber`的类型为`Int?`，把`String`转为`Int`的构造器可能会失败，所以返回一个可选类型`optional Int`，写作`Int?`，表示可能包含`Int`。
+/*: 可以看到`convertNumber`的类型为`Int?`，把`String`转为`Int`的构造器可能会失败，所以返回一个可选类型`optional Int`，写作`Int?`，表示可能包含`Int`。
 你可以为可选变量赋值为`nil`表示没有值。或者声明一个可选量但没赋值，系统会默认设置为`nil`
+ 
  > `nil`只能用于可选常量或可选变量
+ 
 */
 var serverResponseCode: Int? = 404
+print(serverResponseCode)
+// 如果不是404  serverResponseCode = 0  但对于0别人不知道是不是一个错误码 所以给一个统一的不存在的值
 serverResponseCode = nil
 var surveyAnswer: String?
 //: > Swift的`nil`和Objective-C中的`nil`并不一样。在O-C中，`nil`是一个指向不存在对象的指针。Swift的`nil`不是指针——它是确定的值，用来表示缺失。任何类型的可选状态都可置为`nil`，不限于对象类型。
+
 //: 你可以使用`if`和`nil`比较判断是否包含值。当**确定**(不确定会报错哦)包含值之后，在可选的名字后加一个叹号`!`**强制解析(forced unwrapping)**获取值。这里`?`和`!`和其表达的结果是不是很贴切！！！！
 if convertedNumber != nil {
     print("convertNumber contains value:\(convertedNumber!).")
 }
 /*:使用**可选绑定optional binding**来判断可选类型是否包含值，如果包含就把值赋给一个临时常量或者变量。可选绑定可以用在`if``while`中，同时可以判断可选类型有没有值和赋值。
  */
-if let actualNumber = Int(possibleNumber) {
+if let actualNumber = Int(possibleNumber) /*这就是一个解包过程*/ {
     print("\'\(possibleNumber)\' has an integer value of \(actualNumber)")
 }
 //: 也可以包含多个可选绑定在`if`中，并用`where`子句做判断
-if let firstNum = Int("4"), secondNum = Int("42") where firstNum < secondNum {
+if let firstNum = Int("4"),
+       secondNum = Int("42") where firstNum < secondNum {
     print("\(firstNum) < \(secondNum)")
 }
+
+//: Optional Chaining
+var message: String? = "test"
+if let message = message {
+    message.uppercaseString
+}
+//上面等价于
+message?.uppercaseString
+
+//: Nil-Coalesce
+var opMessage: String? = nil
+//A:
+let message1: String
+if let mess = opMessage {
+    message1 = mess
+} else {
+    message1 = "No message"
+}
+//B:
+let message2 = opMessage == nil ? "No message" : opMessage
+//C:
+let message3 = opMessage ?? "No message" //见下一节 空合运算符
+
+//: 可选型在元组使用
+var error: (errorCode: Int, errorMessage: String?) = (404, "Not found")
+error.errorMessage = nil
+error //= nil
+var error2: (erroeCode: Int, errorMessage: String)? = (404, "Not found")
+error2 = nil
+var error3: (erroeCode: Int, errorMessage: String?)? = (404, "Not found")
+
+//: 实际应用
+var greetings = "Hello"
+greetings.rangeOfString("ll")
+greetings.rangeOfString("lm")
+
 /*:
 隐式解析可选类型
 有时候，在程序架构中，在第一次被赋值后，可以确定一个可选类型总是有值，所以不需要每次都判断解析可选值。
 这种类型的可选状态定义为隐式解析可选类型(implicitly unwrapped optionals)。把`?`改成`!`来声明一个隐式解析可选类型。
+但要注意不要为空。
  */
 let possibleString: String? = "An optional String"
 let forcedString: String = possibleString!  //需要叹号取值
 let assumedString: String! = "An implicitly unwrapped optional string"
 let implicitString: String = assumedString  //可以不加叹号  也可以加叹号
+//: 例子 隐式可选型 存在的意义
+class City {
+    let cityName: String
+    unowned var country: Country
+    init(cityName: String, country: Country) {
+        self.cityName = cityName
+        self.country = country
+    }
+    
+}
+
+class Country {
+    let countryName: String
+    var capitalCity: City!//
+    
+    init(countryName: String, capitalCity: String) {
+        self.countryName = countryName //因为capitalCity是可选型 所以到这里capitalCity为nil
+        self.capitalCity = City(cityName: capitalCity, country: self)//用到self,如果capitalCity不是可选型，则 self used before all stored properties are initialized 死循环了
+    }
+    
+    func showInfo() {
+        print("This is \(countryName).")
+        print("The capitcal is \(capitalCity.cityName).")
+    }
+    
+}
+
+let china = Country(countryName: "China", capitalCity: "Beijing")
+china.showInfo()
+
+
+
 /*:
  ### 断言assertion
 可选类型可以让你判断值是否存在，你可以在代码中优雅地处理值缺失的情况。然而，在某些情况下，如果值缺失或者值并不满足特定的条件，你的代码可能没办法继续执行。这时，你可以在你的代码中触发一个断言（assertion）来结束代码运行并通过调试来找到值缺失的原因。

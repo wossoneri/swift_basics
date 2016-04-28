@@ -5,5 +5,9 @@
         <page name='01.The Basics'/>
         <page name='02.Basic Operators'/>
         <page name='03.Strings and Characters'/>
+        <page name='04.Collection Types'/>
+        <page name='05.Control Flow'/>
+        <page name='06.Functions'/>
+        <page name='07.Closures'/>
     </pages>
 </playground>
